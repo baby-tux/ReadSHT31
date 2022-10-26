@@ -34,8 +34,10 @@ public:
     enum class Action {
         ReadValues,
         ReadStatus,
+        ReadSerialNumber,
         HeaterEnable,
-        HeaterDisable
+        HeaterDisable,
+        Reset
     };
 
 public:

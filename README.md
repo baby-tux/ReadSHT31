@@ -9,12 +9,14 @@ There are a number of arguments you can use:
 
 ```
 Usage: read_sht31 [arguments]
- -h|--help   Display this help.
- -s          Get the sensor status.
- -t1 -t0     Enable/disable heater.
- -a0 -a1     Select the chip address. 0 is the default.
- -b0 -b1     Select the bus. 1 is the default.
- -d          Show debugging messages.
+ -h|--help    Display this help.
+ -s           Get the sensor status.
+ -n           Get the sensor serial number.
+ -r           Reset the sensor.
+ -t1 -t0      Enable/disable heater.
+ -a0 -a1      Select the chip address. 0 is the default.
+ -b0 -b1 -bN  Select the bus. 1 is the default.
+ -d           Show debugging messages.
 ```
 
 If you call the command, you will get JSON output:
@@ -45,6 +47,16 @@ cd build_read_sht31
 cmake ../read_sht31
 make
 sudo make install
+```
+
+The Python library may be built by running: `python3 setup.py build`. Only supports address 0. The following methods are available:
+
+```
+sht31.read_values(bus_id) # Reads temperature/humidity values.
+sht31.read_status(bus_id) # Reads the sensor status.
+sht31.control_heater(bus_id, True) # Enables or disables the heater.
+sht31.reset(bus_id) # Resets the sensor.
+sht31.get_serial_number(bus_id) # Gets the serial number.
 ```
 
 ## License (GPL v3)

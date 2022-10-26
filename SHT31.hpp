@@ -22,6 +22,7 @@
 
 #include <tuple>
 #include <cstdint>
+#include <string>
 
 
 namespace lr {
@@ -46,6 +47,10 @@ public:
     /// The result with the status register.
     ///
     using SResult = StatusResult<uint16_t>;
+
+    /// The result with the serial number.
+    ///
+    using SNResult = StatusResult<uint32_t>;
 
     /// The address for the chip.
     ///
@@ -87,6 +92,16 @@ public:
     /// @return The status register.
     ///
     SResult readStatus();
+
+    /// Read the Serial number.
+    ///
+    /// @return The status register.
+    ///
+    SNResult readSerialNumber();
+
+    /// Reset the sensor.
+    ///
+    Status softReset();
 
     /// Enable or disable the heater.
     ///

@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 //
 #include "Application.hpp"
-
+#include <string>
 
 namespace lr {
 
@@ -24,12 +24,14 @@ namespace lr {
 void Application::showHelp()
 {
     std::cerr << "Usage: read_sht31 [arguments]" << std::endl;
-    std::cerr << " -h|--help   Display this help." << std::endl;
-    std::cerr << " -s          Get the sensor status." << std::endl;
-    std::cerr << " -t1 -t0     Enable/disable heater." << std::endl;
-    std::cerr << " -a0 -a1     Select the chip address. 0 is the default." << std::endl;
-    std::cerr << " -b0 -b1     Select the bus. 1 is the default." << std::endl;
-    std::cerr << " -d          Show debugging messages." << std::endl;
+    std::cerr << " -h|--help    Display this help." << std::endl;
+    std::cerr << " -s           Get the sensor status." << std::endl;
+    std::cerr << " -n           Get the sensor serial number." << std::endl;
+    std::cerr << " -r           Reset the sensor." << std::endl;
+    std::cerr << " -t1 -t0      Enable/disable heater." << std::endl;
+    std::cerr << " -a0 -a1      Select the chip address. 0 is the default." << std::endl;
+    std::cerr << " -b0 -b1 -bN  Select the bus. 1 is the default." << std::endl;
+    std::cerr << " -d           Show debugging messages." << std::endl;
 }
 
 
@@ -44,6 +46,10 @@ bool Application::parseCommandLine(int argc, char **argv)
             _debuggingEnabled = true;
         } else if (arg == "-s") {
             _action = Action::ReadStatus;
+        } else if (arg == "-n") {
+            _action = Action::ReadSerialNumber;
+        } else if (arg == "-r") {
+            _action = Action::Reset;
         } else if (arg == "-t1") {
             _action = Action::HeaterEnable;
         } else if (arg == "-t0") {
@@ -52,10 +58,9 @@ bool Application::parseCommandLine(int argc, char **argv)
             _chipAddress = lr::SHT31::Address0;
         } else if (arg == "-a1") {
             _chipAddress = lr::SHT31::Address1;
-        } else if (arg == "-b0") {
-            _bus = 0;
-        } else if (arg == "-b1") {
-            _bus = 1;
+        } else if (arg.substr(0, 2) == "-b") {
+            //Support any bus number
+            _bus = std::stoi(arg.substr(2));
         } else {
             std::cerr << "Unknown argument \"" << arg << "\"." << std::endl;
             showHelp();
@@ -91,6 +96,18 @@ int Application::run(int argc, char **argv)
         }
         // Output the values as JSON
         std::cout << "{ \"status\": " << readResult.getValue() << " }" << std::endl;
+    } else if (_action == Action::ReadSerialNumber) {
+        const auto readResult = shtAccess.readSerialNumber();
+        if (hasError(readResult)) {
+            return 1;
+        }
+        // Output the values as JSON
+        std::cout << "{ \"serial_number\": " << readResult.getValue() << " }" << std::endl;
+    } else if (_action == Action::Reset) {
+        const auto readResult = shtAccess.softReset();
+        if (hasError(readResult)) {
+            return 1;
+        }
     } else if (_action == Action::HeaterEnable) {
         const auto readResult = shtAccess.controlHeater(true);
         if (hasError(readResult)) {

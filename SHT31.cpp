@@ -146,5 +146,38 @@ SHT31::Status SHT31::controlHeater(bool enabled)
     return CallStatus::Success;
 }
 
+SHT31::SNResult SHT31::readSerialNumber() {
+    const uint8_t command[] = {0x37, 0x80};
+    if (hasError(_bus->writeData(command, 2))) {
+        return SNResult::error();
+    }
+    uint8_t data[6];
+    if (hasError(_bus->readData(data, 6))) {
+        return SNResult::error();
+    }
+    // Check the CRC of the values.
+    const auto part1CalculatedCrc = getCrc8(data, 2);
+    const auto part1ExpectedCrc = data[2];
+    const auto part2CalculatedCrc = getCrc8(data + 3, 2);
+    const auto part2ExpectedCrc = data[5];
+    if (part1CalculatedCrc != part1ExpectedCrc || part2CalculatedCrc != part2ExpectedCrc) {
+        std::cerr << "CRC codes of read serial number do not match." << std::endl;
+        return SNResult::error();
+    }
+    const uint16_t part1Value = (static_cast<uint16_t>(data[0]) << 8) | static_cast<uint16_t>(data[1]);
+    const uint16_t part2Value = (static_cast<uint16_t>(data[3]) << 8) | static_cast<uint16_t>(data[4]);
+    const uint32_t serialValue = (static_cast<uint32_t>(part1Value) << 16) | static_cast<uint32_t>(part2Value);
+
+    return SNResult::success(serialValue);
+}
+
+SHT31::Status SHT31::softReset()
+{
+    const uint8_t command[] = {0x30, 0xA2};
+    if (hasError(_bus->writeData(command, 2))) {
+        return Status::Error;
+    }
+    return CallStatus::Success;
+}
 
 }
